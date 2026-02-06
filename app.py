@@ -1,49 +1,63 @@
-import streamlit as st
 import pandas as pd
-import numpy as np
-import pickle
+import random
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+import pickle
 
-# Set page config
-st.set_page_config(page_title="Prediksi Harga Properti", layout="wide")
+# =====================================
+# 1. GENERATE DATA PROPERTI (SIMULASI)
+# =====================================
+data = []
 
-st.title("🏠 Aplikasi Prediksi Harga Properti")
-st.write("Prediksi harga rumah berdasarkan fitur-fitur utama")
+for _ in range(300):
+    area = random.randint(3000, 12000)        # luas bangunan
+    bedrooms = random.randint(1, 6)           # kamar tidur
+    bathrooms = random.randint(1, 4)          # kamar mandi
+    stories = random.randint(1, 4)             # lantai
 
-# ------------------------
-# Load Model dan Scaler
-# ------------------------
-model = pickle.load(open("model_property.pkl", "rb"))
-scaler = pickle.load(open("scaler_property.pkl", "rb"))
+    # Rumus harga (simulasi AI)
+    price = (
+        area * 20 +
+        bedrooms * 5000 +
+        bathrooms * 8000 +
+        stories * 7000 +
+        random.randint(-10000, 10000)
+    )
 
-# ------------------------
-# Input dari User
-# ------------------------
-st.header("Input Data Properti")
+    data.append([area, bedrooms, bathrooms, stories, price])
 
-gr_liv_area = st.number_input("Luas Bangunan (sq ft)", min_value=200, max_value=10000, value=1500)
-overall_qual = st.slider("Kualitas Bangunan (1–10)", 1, 10, 5)
-year_built = st.slider("Tahun Dibangun", 1900, 2022, 2005)
-total_bsmt_sf = st.number_input("Luas Basement (sq ft)", min_value=0, max_value=3000, value=800)
-garage_cars = st.slider("Kapasitas Mobil Garage", 0, 4, 2)
+df = pd.DataFrame(
+    data,
+    columns=["area", "bedrooms", "bathrooms", "stories", "price"]
+)
 
-features = np.array([[gr_liv_area, overall_qual, year_built, total_bsmt_sf, garage_cars]])
-features_scaled = scaler.transform(features)
+print("✅ Data properti berhasil dibuat")
 
-# ------------------------
-# Prediksi
-# ------------------------
-if st.button("Prediksi Harga"):
-    price_pred = model.predict(features_scaled)
-    st.success(f"📊 Prediksi Harga Properti: ${price_pred[0]:,.2f}")
+# =====================================
+# 2. TRAINING MODEL AI
+# =====================================
+X = df[["area", "bedrooms", "bathrooms", "stories"]]
+y = df["price"]
 
-# ------------------------
-# Statistik & Grafik
-# ------------------------
-st.header("Visualisasi Harga Properti")
-data = pd.read_csv("AmesHousing.csv")
-st.write(data.head())
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-st.subheader("Distribusi Harga Rumah")
-st.bar_chart(data["SalePrice"])
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# =====================================
+# 3. SIMPAN MODEL & SCALER
+# =====================================
+pickle.dump(model, open("model_property.pkl", "wb"))
+pickle.dump(scaler, open("scaler_property.pkl", "wb"))
+
+print("✅ Model AI berhasil dibuat")
+print("📁 File dihasilkan:")
+print("- model_property.pkl")
+print("- scaler_property.pkl")
+
