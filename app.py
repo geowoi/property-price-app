@@ -29,14 +29,36 @@ df = load_data()
 # ===============================
 # EDA
 # ===============================
-st.subheader("📊 Statistik Dataset")
-st.write(df.describe())
+st.subheader("📈 Hubungan Median Income vs Harga Rumah (Visual Lebih Jelas)")
 
-st.subheader("📈 Grafik Hubungan Median Income vs Harga Rumah")
-fig, ax = plt.subplots()
-ax.scatter(df["MedInc"], df["MedHouseVal"], alpha=0.3)
+# Sampling biar tidak numpuk
+sample_df = df.sample(3000, random_state=42)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+ax.scatter(
+    sample_df["MedInc"],
+    sample_df["MedHouseVal"],
+    alpha=0.4,
+    s=15
+)
+
+# Garis tren (rata-rata per income bin)
+bins = np.linspace(sample_df["MedInc"].min(), sample_df["MedInc"].max(), 20)
+sample_df["income_bin"] = np.digitize(sample_df["MedInc"], bins)
+
+trend = sample_df.groupby("income_bin").mean(numeric_only=True)
+
+ax.plot(
+    trend["MedInc"],
+    trend["MedHouseVal"],
+    linewidth=3
+)
+
 ax.set_xlabel("Median Income")
 ax.set_ylabel("Harga Rumah")
+ax.set_title("Semakin Tinggi Pendapatan, Semakin Mahal Harga Rumah")
+
 st.pyplot(fig)
 
 # ===============================
