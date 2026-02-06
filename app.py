@@ -118,10 +118,8 @@ if st.button("🔮 Prediksi Harga"):
 # ===============================
 # PENJELASAN AI
 # ===============================
-st.subheader("🤖 Kenapa ini disebut AI?")
+st.subheader("🤖 Cari Property? Call Jessclyne Ya!")
 st.markdown("""
-- Menggunakan **Machine Learning**
-- Model belajar dari **20.000+ data properti**
-- Bukan rumus manual
-- Model menemukan pola sendiri dari data
+- 2321113982
+- CREATED BY JESSCLYNE BY MYSELF :)
 """)
