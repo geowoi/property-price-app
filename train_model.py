@@ -1,37 +1,46 @@
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 import pickle
 
-# Upload dataset AmesHousing.csv dulu
-df = pd.read_csv("AmesHousing.csv")
+# =========================
+# LOAD DATASET
+# =========================
+df = pd.read_csv("housing.csv")
 
-features = ["GrLivArea", "OverallQual", "YearBuilt", "TotalBsmtSF", "GarageCars"]
-target = "SalePrice"
+# =========================
+# FITUR & TARGET (PASTI ADA)
+# =========================
+features = ["area", "bedrooms", "bathrooms", "stories"]
+target = "price"
 
 X = df[features]
 y = df[target]
 
-# Handle missing values
-X = X.fillna(X.mean())
-
-# Split data
+# =========================
+# SPLIT DATA
+# =========================
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# Scaling
+# =========================
+# SCALING
+# =========================
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 
-# Train model
+# =========================
+# TRAIN MODEL
+# =========================
 model = LinearRegression()
 model.fit(X_train_scaled, y_train)
 
-# Save model & scaler
+# =========================
+# SAVE MODEL
+# =========================
 pickle.dump(model, open("model_property.pkl", "wb"))
 pickle.dump(scaler, open("scaler_property.pkl", "wb"))
 
-print("✅ Model & scaler berhasil dibuat")
+print("✅ Training selesai. Model & scaler berhasil disimpan.")
