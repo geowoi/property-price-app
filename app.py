@@ -1,63 +1,62 @@
+import streamlit as st
 import pandas as pd
-import random
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+import numpy as np
 from sklearn.linear_model import LinearRegression
-import pickle
+import matplotlib.pyplot as plt
 
-# =====================================
-# 1. GENERATE DATA PROPERTI (SIMULASI)
-# =====================================
-data = []
+st.set_page_config(page_title="Prediksi Harga Properti", layout="centered")
 
-for _ in range(300):
-    area = random.randint(3000, 12000)        # luas bangunan
-    bedrooms = random.randint(1, 6)           # kamar tidur
-    bathrooms = random.randint(1, 4)          # kamar mandi
-    stories = random.randint(1, 4)             # lantai
+st.title("🏠 Aplikasi Prediksi Harga Properti")
+st.write("Aplikasi AI sederhana untuk memprediksi harga rumah berdasarkan data sintetis.")
 
-    # Rumus harga (simulasi AI)
-    price = (
-        area * 20 +
-        bedrooms * 5000 +
-        bathrooms * 8000 +
-        stories * 7000 +
-        random.randint(-10000, 10000)
-    )
+# =============================
+# BUAT DATASET SENDIRI (AMAN)
+# =============================
+@st.cache_data
+def load_data():
+    np.random.seed(42)
+    data = {
+        "Luas_Bangunan": np.random.randint(50, 300, 100),
+        "Jumlah_Kamar": np.random.randint(1, 6, 100),
+        "Harga": np.random.randint(300, 3000, 100) * 1_000_000
+    }
+    return pd.DataFrame(data)
 
-    data.append([area, bedrooms, bathrooms, stories, price])
+df = load_data()
 
-df = pd.DataFrame(
-    data,
-    columns=["area", "bedrooms", "bathrooms", "stories", "price"]
-)
+# =============================
+# TAMPILKAN DATA
+# =============================
+st.subheader("📊 Statistik Data Properti")
+st.dataframe(df.head())
 
-print("✅ Data properti berhasil dibuat")
+# =============================
+# GRAFIK
+# =============================
+st.subheader("📈 Grafik Harga vs Luas Bangunan")
+fig, ax = plt.subplots()
+ax.scatter(df["Luas_Bangunan"], df["Harga"])
+ax.set_xlabel("Luas Bangunan (m²)")
+ax.set_ylabel("Harga (Rp)")
+st.pyplot(fig)
 
-# =====================================
-# 2. TRAINING MODEL AI
-# =====================================
-X = df[["area", "bedrooms", "bathrooms", "stories"]]
-y = df["price"]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
+# =============================
+# TRAIN MODEL (LANGSUNG)
+# =============================
+X = df[["Luas_Bangunan", "Jumlah_Kamar"]]
+y = df["Harga"]
 
 model = LinearRegression()
-model.fit(X_train_scaled, y_train)
+model.fit(X, y)
 
-# =====================================
-# 3. SIMPAN MODEL & SCALER
-# =====================================
-pickle.dump(model, open("model_property.pkl", "wb"))
-pickle.dump(scaler, open("scaler_property.pkl", "wb"))
+# =============================
+# INPUT USER
+# =============================
+st.subheader("🔮 Prediksi Harga Rumah")
 
-print("✅ Model AI berhasil dibuat")
-print("📁 File dihasilkan:")
-print("- model_property.pkl")
-print("- scaler_property.pkl")
+luas = st.number_input("Luas Bangunan (m²)", 20, 500, 100)
+kamar = st.number_input("Jumlah Kamar", 1, 10, 3)
 
+if st.button("Prediksi Harga"):
+    prediksi = model.predict([[luas, kamar]])
+    st.success(f"💰 Estimasi Harga Rumah: Rp {int(prediksi[0]):,}")
